@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:spring="http://www.mulesoft.org/schema/mule/spring"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/spring http://www.mulesoft.org/schema/mule/spring/current/mule-spring.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="mulesoft_test_api-httpListenerConfig">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+	</http:listener-config>
+	<spring:config name="Spring_Config" doc:name="Spring Config"
+		doc:id="d9e5fa56-9e59-48da-b1f1-7ce5cc00cc64" files="beans.xml" />
+	<spring:security-manager doc:name="Spring Security manager"
+		doc:id="7673bafc-d872-4890-b642-789bce9e1771">
+		<spring:delegate-security-provider
+			name="securityProvider" delegate-ref="authenticationManager" />
+	</spring:security-manager>
+	<apikit:config name="mulesoft_test_api-config" raml="mulesoft_test_api.raml"
+		outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<db:config name="Mysql_Mulesoft_Test" doc:name="Database Config"
+		doc:id="da792272-ccd5-4c27-8fda-40423ac07c06">
+		<db:my-sql-connection
+			host="mysql-baservices.cvfzfbm5lfp0.us-west-2.rds.amazonaws.com"
+			port="3306" user="msbaservices" password="OnB0ardMul3!" database="TRAINING" />
+	</db:config>
+	<flow name="mulesoft_test_api-main">
+		<http:listener config-ref="mulesoft_test_api-httpListenerConfig"
+			path="/api/*">
+			<http:response statusCode="#[vars.httpStatus default 200]">
+			</http:response>
+			<http:error-response statusCode="#[vars.httpStatus default 500]">
+				<http:body><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<apikit:router config-ref="mulesoft_test_api-config" />
+		<error-handler>
+			<on-error-propagate type="APIKIT:BAD_REQUEST">
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd"
+					doc:id="9fa00d65-79b7-4029-b3b4-26adf2ca974e">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:NOT_FOUND">
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd"
+					doc:id="a2021996-988f-4f58-acd9-df6643c2c6f6">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd"
+					doc:id="bd83f7c6-98e9-4fc6-b20d-08ab240683fb">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="6b4d4a11-6202-4834-98af-1e1104c58b7b">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[406
+						]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd"
+					doc:id="4cfb67c7-7e58-444f-9a60-05d39e3c4aa2">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">501
+						</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d2fd9dd1-e18a-4445-b5d9-0423db186181" type="HTTP:BASIC_AUTHENTICATION">
+				<ee:transform doc:name="Transform Message" doc:id="2a9a6b1b-5bfa-471f-a02d-7d6ad405b7b7" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Invalid Credentials"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus">401
+						</ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="eae0f7a6-c3b5-4338-bd8b-df2627310b22" type="ORDER:ALREADY_EXISTS">
+				<ee:transform doc:name="Transform Message" doc:id="2ada24d4-abe0-4edb-89ef-5e93e836aecc" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: error.description}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[409
+						]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="40841b7a-22f3-4c30-80dc-b36f716702b8" type="MULE:NOT_PERMITTED">
+				<ee:transform doc:name="Transform Message" doc:id="86f5a7f7-8a16-47df-b11e-0b5e48085c27" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unauthorized " ++ payload.inboundProperties.get('http.headers.username') as String ++ " user"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[401
+						]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="mulesoft_test_api-console">
+		<http:listener config-ref="mulesoft_test_api-httpListenerConfig"
+			path="/console/*">
+			<http:response statusCode="#[vars.httpStatus default 200]">
+			</http:response>
+			<http:error-response statusCode="#[vars.httpStatus default 500]">
+				<http:body><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<apikit:console config-ref="mulesoft_test_api-config" />
+	</flow>
+	<flow name="get:\orders:mulesoft_test_api-config">
+		<http:basic-security-filter doc:name="Basic security filter"
+			doc:id="ee193b51-2813-452a-8e31-f000bd26a21e" realm="mule" />
+		<spring:authorization-filter doc:id="9e6c1a7c-15ee-435e-9044-153e29f6e75c"
+			requiredAuthorities="ROLE_ADMIN" />
+		<db:select doc:name="Retrieve_all_Orders_with_Filled_state"
+			doc:id="3a7b612e-1a8d-418c-bd8e-6ccd22d2c52b" config-ref="Mysql_Mulesoft_Test">
+			<ee:repeatable-file-store-iterable
+				inMemoryObjects="5000" />
+			<db:sql>SELECT *, ROUND((O.PRICE * O.QUANTITY),2) as NET_AMOUNT FROM
+				ORDERS_HISTORY AS O WHERE O.STATUS = &quot;Filled&quot; ORDER BY
+				O.SYMBOL;
+			</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message"
+			doc:id="69f18273-0408-4ab6-abe7-18dbc06edb83">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="#[message.payload]" doc:name="Log_Payload"/>
+	</flow>
+	<flow name="post:\order:application\json:mulesoft_test_api-config">
+		<http:basic-security-filter doc:name="Basic security filter"
+			doc:id="49929f96-4b8a-4315-84a3-3f9235a8caac" realm="mule" />
+		<spring:authorization-filter doc:id="07939b63-364f-4e93-8771-f7f036b6eaab" requiredAuthorities="ROLE_ANON" />
+		<db:select doc:name="Check_If_Order_exists" doc:id="ca123521-91eb-4980-baf9-6095cb0f04ac" config-ref="Mysql_Mulesoft_Test">
+			<db:sql >SELECT Count(*) AS TOTAL FROM ORDERS_HISTORY as O
+		WHERE O.ORDER_DATE = :P_order_date
+		AND O.ACTION = :P_action
+		AND O.STATUS = 'Pending'
+		AND O.SYMBOL = :P_symbol
+		AND O.QUANTITY = :P_quantity
+		AND O.PRICE = :P_price</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'P_order_date':payload.order_date as String {format: "yyyy-MM-dd'T'HH:mm:ss"},
+	'P_action':payload.action,
+	'P_symbol':payload.symbol,
+	'P_quantity':payload.quantity,
+	'P_price':payload.price
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="IF_Exist" doc:id="2c21a535-154a-4701-9489-73e1f8784c86" >
+			<when expression="#[message.payload[0].TOTAL == 0]">
+				<db:insert doc:name="Insert_Order" doc:id="ce6d32b0-c767-498e-be61-fd721943b044" config-ref="Mysql_Mulesoft_Test">
+			<db:sql>INSERT INTO TRAINING.ORDERS_HISTORY (TX_NUMBER, ORDER_DATE,
+				ACTION, STATUS, SYMBOL, QUANTITY, PRICE)
+				VALUES (NULL, :P_order_date,
+				:P_action, 'Pending', :P_symbol, :P_quantity,
+				:P_price);
+			</db:sql>
+			<db:input-parameters><![CDATA[#[{
+	'P_order_date':payload.order_date as String {format: "yyyy-MM-dd'T'HH:mm:ss"},
+	'P_action':payload.action,
+	'P_symbol':payload.symbol,
+	'P_quantity':payload.quantity,
+	'P_price':payload.price
+}]]]></db:input-parameters>
+		</db:insert>
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="19f3f1bf-21e0-4b15-ac6b-1401f21346df">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "The Order has been properly entered"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Log_Payload" doc:id="d5d134d3-7780-4b92-a3d9-f7dd6fb49890" message="#[message.payload]" />
+			</when>
+			<otherwise>
+            <raise-error type="ORDER:ALREADY_EXISTS" description="#['Order already exists']"/>
+        </otherwise>
+		</choice>
+	</flow>
+</mule>

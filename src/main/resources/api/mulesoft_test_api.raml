@@ -1,0 +1,110 @@
+#%RAML 1.0
+title: Mulesoft Technical Excersice about Orders 
+version: v1.0
+baseUri: http://localhost:8081/{version}
+mediaType: application/json
+securitySchemes:
+  basicAuth:
+    description: Each request must contain the headers necessary for
+                 basic authentication
+    type: Basic Authentication
+    describedBy:
+      headers:
+        Authorization:
+          description: Used to send the Base64 encoded "username:password"
+                       credentials
+          type: string
+      responses:
+        401:
+          description: |
+            Unauthorized. Either the provided username and password
+            combination is invalid, or the user is not allowed to access
+            the content provided by the requested URL.
+types:
+  Order: 
+    properties:
+      tx_number?: number
+      order_date: 
+        type: datetime-only
+        example: 2015-07-04T21:00:00
+      quantity: number
+      price: number
+      symbol: string
+      action: 
+        description: Type of Action
+        enum: [BUY,SELL]
+      status?: 
+        description: Type of Status
+        enum: [Pending, Filled, Canceled]
+            
+/orders:
+  get:
+    securedBy: [basicAuth]
+    description: |
+        List all Orders
+    responses: 
+        200:
+          body:
+              application/json:
+                example: |
+                  [
+                    {
+                        "ORDER_DATE": "2018-02-08T18:40:50",
+                        "SYMBOL": "DIA",
+                        "QUANTITY": 505,
+                        "PRICE": 107.8499984741211,
+                        "ACTION": "BUY",
+                        "NET_AMOUNT": 54464.25,
+                        "TX_NUMBER": 82,
+                        "STATUS": "Filled"
+                    },
+                    {
+                        "ORDER_DATE": "2018-10-06T22:58:30",
+                        "SYMBOL": "DIA",
+                        "QUANTITY": 3526,
+                        "PRICE": 899.72998046875,
+                        "ACTION": "SELL",
+                        "NET_AMOUNT": 3172447.91,
+                        "TX_NUMBER": 101,
+                        "STATUS": "Filled"
+                    }
+                  ]
+        404:
+            body: 
+              application/json:
+                properties:
+                  message: string
+                example: |
+                  {
+                    "message" : "Orders not found"
+                  }
+
+/order:
+  post:
+    securedBy: [basicAuth]
+    description: Insert a new " BUY " or " SELL " order into the table with the status " Pending ".
+    body:
+      application/json:
+        type: Order
+    responses:
+     200:
+        body:
+          application/json:
+            example: |
+               { 
+                   "message": "The Order has been properly entered" 
+                }
+     409:  
+        body:
+          application/json:
+            example: |
+               { 
+                   "message": "The Order already exists" 
+                }
+     400:
+        body: 
+          application/json:
+            example: |
+                  {
+                    "message" : "Bad Request. The request contains incorrect syntax and should not be repeated."
+                  }
