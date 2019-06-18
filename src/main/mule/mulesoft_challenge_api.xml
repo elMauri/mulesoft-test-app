@@ -164,7 +164,7 @@ import * from dw::core::Binaries
 output application/json
 var username = fromBase64(attributes.headers.Authorization replace "Basic " with "") splitBy ":"
 ---
-{message: "Unauthorized user: " ++ username[0] }]]></ee:set-payload>
+{message: "Unauthorized user:" ++ username[0] }]]></ee:set-payload>
 					</ee:message>
 					<ee:variables>
 						<ee:set-variable variableName="httpStatus"><![CDATA[401
