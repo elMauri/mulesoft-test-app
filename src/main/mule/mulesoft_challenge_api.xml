@@ -160,9 +160,11 @@ output application/json
 				<ee:transform doc:name="Transform Message" doc:id="86f5a7f7-8a16-47df-b11e-0b5e48085c27" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Binaries
 output application/json
+var username = fromBase64(attributes.headers.Authorization replace "Basic " with "") splitBy ":"
 ---
-{message: "Unauthorized " ++ payload.inboundProperties.get('http.headers.username') as String ++ " user"}]]></ee:set-payload>
+{message: "Unauthorized " ++ username[0] ++ " user" }]]></ee:set-payload>
 					</ee:message>
 					<ee:variables>
 						<ee:set-variable variableName="httpStatus"><![CDATA[401
