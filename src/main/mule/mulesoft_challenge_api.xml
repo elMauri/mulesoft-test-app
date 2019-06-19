@@ -230,7 +230,6 @@ payload]]></ee:set-payload>
 	'P_price':payload.price
 }]]]></db:input-parameters>
 		</db:select>
-		<logger level="INFO" doc:name="Log_Query_Result" doc:id="f1d41d86-3839-440e-b86f-064b5afe129c" message='Valor de variable Exists:  #[vars.exists.TOTAL[0]]'/>
 		<choice doc:name="IF_Exists" doc:id="2c21a535-154a-4701-9489-73e1f8784c86" >
 			<when expression="#[vars.exists.TOTAL[0] == 0]">
 				<db:insert doc:name="Insert_Order" doc:id="ce6d32b0-c767-498e-be61-fd721943b044" config-ref="Mysql_Mulesoft_Test">
