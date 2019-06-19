@@ -43,7 +43,7 @@ java -jar target/mulesoft.challenge.app-1.0.0-SNAPSHOT-mule-application.jar
 
 Application has two Api's exposed:
 
-#### **Service:**
+### **1. Service:**
 
 ```
 “/api/orders”
@@ -91,7 +91,7 @@ Response e.g.:
 ```
 
 
-Https status code handling:
+#### HTTP status code handling:
 
 * **HTTP 200-OK** : _Retrieved all Orders_.  
 * **HTTP 401-Unauthorized** : _When the username o password not exists_. 
@@ -108,7 +108,7 @@ Https status code handling:
     "message": "Unauthorized user: [username]"
 }
 ````
-#### **Service:**
+### **2. Service:**
 ```
 “/stats/”
 ```
@@ -130,7 +130,7 @@ This Api require send a JSON payload via POST verb with specific format and mand
     description: Type of Status
     enum: [Pending, Filled, Canceled]
 ```
-Los codigos de respuestas manejados de este servicio son:
+#### HTTP status code handling:
 
 * **HTTP 200-OK** : _When the order is correctly inserted_.
 ```
