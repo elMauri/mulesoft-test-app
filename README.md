@@ -110,7 +110,7 @@ Response e.g.:
 ````
 ### **2. Service:**
 ```
-“/stats/”
+“/api/order”
 ```
 **HTTP Method**: POST → /api/order/  
 
