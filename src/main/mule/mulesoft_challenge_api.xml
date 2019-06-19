@@ -38,7 +38,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		</http:listener>
 		<apikit:router config-ref="mulesoft_test_api-config" />
 		<error-handler>
-			<on-error-propagate type="APIKIT:BAD_REQUEST">
+			<on-error-propagate type="APIKIT:BAD_REQUEST" enableNotifications="true" logException="true">
 				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
 					xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd"
 					doc:id="9fa00d65-79b7-4029-b3b4-26adf2ca974e">
@@ -164,7 +164,7 @@ import * from dw::core::Binaries
 output application/json
 var username = fromBase64(attributes.headers.Authorization replace "Basic " with "") splitBy ":"
 ---
-{message: "Unauthorized user:" ++ username[0] }]]></ee:set-payload>
+{message: "Unauthorized user: " ++ username[0] }]]></ee:set-payload>
 					</ee:message>
 					<ee:variables>
 						<ee:set-variable variableName="httpStatus"><![CDATA[401
@@ -214,7 +214,7 @@ payload]]></ee:set-payload>
 		<http:basic-security-filter doc:name="Basic security filter"
 			doc:id="49929f96-4b8a-4315-84a3-3f9235a8caac" realm="mule" />
 		<spring:authorization-filter doc:id="07939b63-364f-4e93-8771-f7f036b6eaab" requiredAuthorities="ROLE_ANON" />
-		<db:select doc:name="Check_If_Order_exists" doc:id="ca123521-91eb-4980-baf9-6095cb0f04ac" config-ref="Mysql_Mulesoft_Test">
+		<db:select doc:name="Check_If_Order_exists" doc:id="ca123521-91eb-4980-baf9-6095cb0f04ac" config-ref="Mysql_Mulesoft_Test" target="exists" queryTimeoutUnit="NANOSECONDS">
 			<db:sql >SELECT Count(*) AS TOTAL FROM ORDERS_HISTORY as O
 		WHERE O.ORDER_DATE = :P_order_date
 		AND O.ACTION = :P_action
@@ -230,8 +230,9 @@ payload]]></ee:set-payload>
 	'P_price':payload.price
 }]]]></db:input-parameters>
 		</db:select>
-		<choice doc:name="IF_Exist" doc:id="2c21a535-154a-4701-9489-73e1f8784c86" >
-			<when expression="#[message.payload[0].TOTAL == 0]">
+		<logger level="INFO" doc:name="Log_Query_Result" doc:id="f1d41d86-3839-440e-b86f-064b5afe129c" message='Valor de variable Exists:  #[vars.exists.TOTAL[0]]'/>
+		<choice doc:name="IF_Exists" doc:id="2c21a535-154a-4701-9489-73e1f8784c86" >
+			<when expression="#[vars.exists.TOTAL[0] == 0]">
 				<db:insert doc:name="Insert_Order" doc:id="ce6d32b0-c767-498e-be61-fd721943b044" config-ref="Mysql_Mulesoft_Test">
 			<db:sql>INSERT INTO TRAINING.ORDERS_HISTORY (TX_NUMBER, ORDER_DATE,
 				ACTION, STATUS, SYMBOL, QUANTITY, PRICE)
