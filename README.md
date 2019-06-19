@@ -30,14 +30,6 @@ git clone https://github.com/elMauri/mulesoft-test-app
 cd mulesoft.challenge.app
 mvn clean package
 ```
-In Windows:
-```
-java -jar target\mulesoft.challenge.app-1.0.0-SNAPSHOT-mule-application.jar
-```
-In Linux:
-```
-java -jar target/mulesoft.challenge.app-1.0.0-SNAPSHOT-mule-application.jar
-```
 
 ## Exposing
 
