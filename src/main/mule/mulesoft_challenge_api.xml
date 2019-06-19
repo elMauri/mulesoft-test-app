@@ -137,7 +137,7 @@ output application/json
 {message: "Invalid Credentials"}]]></ee:set-payload>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="httpStatus">401
+						<ee:set-variable variableName="httpStatus"><![CDATA[401]]>
 						</ee:set-variable>
 					</ee:variables>
 				</ee:transform>
